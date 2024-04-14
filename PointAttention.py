@@ -247,14 +247,12 @@ class PatchAttention(nn.Module):
         x = rearrange(input_x,'b w c -> b c w')
         x = slide_window(x,self.hop) # batch channel rolling_num patch_size
         x = rearrange(x,'b c r p -> (b r) p c')
-        #TODO:// check revin dim 
         intra_x = self.intra_in(intra_x)
         for attn,attn_post_norm,ff,ff_post_norm in self.intra_layer:
             intra_x = attn(intra_x) + intra_x
             intra_x = attn_post_norm(intra_x)
             intra_x = ff(intra_x) + intra_x
             intra_x = ff_post_norm(intra_x)
-        intra_x = reverse_fn(intra_x) # (b r p dim)
 
 
         intra_x = rearrange(intra_x,'(b r) p d -> b r p d' ,b=b)
@@ -262,115 +260,17 @@ class PatchAttention(nn.Module):
 
 
         intra_x_seq = rearrange(input_x, "b w c -> b w c")
-        intra_x_seq, reverse_fn = self.intra_seq_revin(intra_x_seq)
         intra_x_seq = self.intra_in(intra_x_seq)
         for attn, attn_post_norm, ff, ff_post_norm in self.intra_layer:
             intra_x_seq = attn(intra_x_seq) + intra_x_seq
             intra_x_seq = attn_post_norm(intra_x_seq)
             intra_x_seq = ff(intra_x_seq) + intra_x_seq
             intra_x_seq = ff_post_norm(intra_x_seq)
-        intra_x_seq = reverse_fn(intra_x_seq) # b window d 
         return intra_x + intra_x_seq
-        # x = rearrange(intra_x + intra_x_seq,'b w d -> b (w d)')
-        # return self.to_out(x)
+
 
 
         
-
-
-
-class Ours(nn.Module):
-    def __init__(
-        self,
-        win_size,
-        channel,
-        depth,
-        dim,
-        dim_head,
-        heads,
-        attn_dropout,
-        ff_mult,
-        ff_dropout,
-        use_RN=False,
-        flash_attn=True,
-    ):
-        super().__init__()
-        self.win_size = win_size
-        self.channel = channel
-
-        self.intra_layers = nn.ModuleList([])
-        for _ in range(depth):
-            self.intra_layers.append(
-                ModuleList(
-                    [
-                        Attention(
-                            dim,
-                            dim_head=dim_head,
-                            heads=heads,
-                            dropout=attn_dropout,
-                            flash=flash_attn,
-                        ),
-                        nn.LayerNorm(dim),
-                        FeedForward(dim, mult=ff_mult, dropout=ff_dropout),
-                        nn.LayerNorm(dim),
-                    ]
-                )
-            )
-        self.inter_layers = nn.ModuleList([])
-        for _ in range(depth):
-            self.inter_layers.append(
-                ModuleList(
-                    [
-                        Attention(
-                            dim,
-                            dim_head=dim_head,
-                            heads=heads,
-                            dropout=attn_dropout,
-                            flash=flash_attn,
-                        ),
-                        nn.LayerNorm(dim),
-                        FeedForward(dim, mult=ff_mult, dropout=ff_dropout),
-                        nn.LayerNorm(dim),
-                    ]
-                )
-            )
-        self.inter_revin = RevIN(channel)
-        self.intra_revin = RevIN(win_size)
-
-        self.intra_in = nn.Sequential(
-            # b w c
-            nn.Linear(channel, dim),
-            nn.LayerNorm(dim),
-        )
-        self.inter_in = nn.Sequential(nn.Linear(win_size, dim), nn.LayerNorm(dim))
-
-    def forward(self, x):
-        b, w, c = x.shape
-
-        # inter
-        inter_x = rearrange(x, "b w c -> b c w")
-        _inter_x = inter_x.clone()
-        inter_x, reverse_fn = self.inter_revin(inter_x)
-        inter_x = self.inter_in(inter_x)
-        for attn, attn_post_norm, ff, ff_post_norm in self.inter_layers:
-            inter_x = attn(inter_x) + inter_x
-            inter_x = attn_post_norm(inter_x)
-            inter_x = ff(inter_x) + inter_x
-            inter_x = ff_post_norm(inter_x)
-        inter_x = reverse_fn(inter_x)
-
-        # intra
-        # intra_x, reverse_fn = self.intra_revin(_inter_x)
-        intra_x = rearrange(_inter_x, "b w c -> b w c")
-        intra_x = self.intra_in(intra_x)
-        for attn, attn_post_norm, ff, ff_post_norm in self.intra_layers:
-            intra_x = attn(intra_x) + intra_x
-            intra_x = attn_post_norm(intra_x)
-            intra_x = ff(intra_x) + intra_x
-            intra_x = ff_post_norm(intra_x)
-        intra_x = reverse_fn(intra_x)
-
-        return inter_x, intra_x
 
 class FeatureDistance(Module):
     def __init__(self):
