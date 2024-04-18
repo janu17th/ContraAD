@@ -211,7 +211,8 @@ class PatchAttention(nn.Module):
         self.win_size = win_size
         self.channel = channel
         self.hop = hop
-        
+        self.gamma = nn.Parameter(torch.ones(1),requires_grad=True)
+        self.beta = nn.Parameter(torch.zeros(1),requires_grad=True)
         self.intra_layer = nn.ModuleList([])
         self.reduction = reduction
         rotary_emb = RotaryEmbedding(dim_head)
@@ -245,6 +246,7 @@ class PatchAttention(nn.Module):
     def forward(self,input_x):
         b,w,c = input_x.shape
         x = rearrange(input_x,'b w c -> b c w')
+        x = repeat(self.gamma,'1->1 c 1',c=c) * x + repeat(self.beta,'1->1 c 1',c=c)
         x = slide_window(x,self.hop) # batch channel rolling_num patch_size
         x = rearrange(x,'b c r p -> (b r) p c')
         intra_x = self.intra_in(intra_x)
