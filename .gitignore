@@ -1,0 +1,8 @@
+__pycache__/
+checkpoints/*
+img/
+result/
+dataset.zip
+.vscode/
+search*.sh 
+dataset/
