@@ -16,15 +16,10 @@
 |   -- data_loader.py
 |-- dataset.zip
 |-- main.py
-|-- metrics
-|   |-- AUC.py
-|   |-- Matthews_correlation_coefficient.py
-|   |-- .... # eval metrics 
 |-- model
 |   |-- PointAttention.py # model file
 |   |-- RevIN.py 
 |   |-- attend.py 
-|   `-- embed.py
 |-- readme.md
 |-- requirements.txt
 |-- scripts
