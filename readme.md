@@ -14,7 +14,6 @@
 ```bash
 |-- data_factory
 |   -- data_loader.py
-|-- dataset.zip
 |-- main.py
 |-- model
 |   |-- PointAttention.py # model file
