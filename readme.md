@@ -3,7 +3,7 @@
 
 ## Overview
 
-![overview](img/overview.png)
+![overview](./img/overview.png)
 
 ### Key Contribution
 1. We using a cross contrastive method to detect the anomaly.
@@ -63,4 +63,4 @@ folder.
 ## Result 
 
 
-![overview](img/result.png)
+![overview](./img/result.png)

@@ -18,7 +18,6 @@ from data_factory.data_loader import get_loader_segment
 from einops import rearrange,reduce,repeat
 from sklearn.metrics import precision_recall_fscore_support
 
-from metrics.metrics import *
 import warnings
 
 warnings.filterwarnings("ignore")
