@@ -42,7 +42,7 @@ After that,
 
 2. `pip install -r requirements.txt`
 
-3. train and evaluate using the script under the `scripts` 
+3. train and evaluate using the script under the `scripts`  （Due to differences in GPUs number, machines, parameters, etc., there may be slight variations in the experimental results.）
 folder. 
 
     ```bash
